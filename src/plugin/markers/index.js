@@ -1,4 +1,3 @@
-
 /**
  * @typedef {Object} MarkerParams
  * @desc The parameters used to describe a marker.
@@ -8,7 +7,6 @@
  * @property {?color} string background color for marker
  * @property {?position} string "top" or "bottom", defaults to "bottom"
  */
-
 
 /**
  * Markers are points in time in the audio that can be jumped to.
@@ -53,13 +51,13 @@ export default class MarkersPlugin {
      */
     static create(params) {
         return {
-            name: 'markers',
+            name: "markers",
             deferInit: params && params.deferInit ? params.deferInit : false,
             params: params,
             staticProps: {
                 addMarker(options) {
                     if (!this.initialisedPluginList.markers) {
-                        this.initPlugin('markers');
+                        this.initPlugin("markers");
                     }
                     return this.markers.add(options);
                 },
@@ -79,7 +77,6 @@ export default class MarkersPlugin {
         this.markerWidth = 11;
         this.markerHeight = 22;
 
-
         this._onResize = () => {
             this._updateMarkerPositions();
         };
@@ -87,11 +84,11 @@ export default class MarkersPlugin {
         this._onBackendCreated = () => {
             this.wrapper = this.wavesurfer.drawer.wrapper;
             if (this.params.markers) {
-                this.params.markers.forEach(marker => this.add(marker));
+                this.params.markers.forEach((marker) => this.add(marker));
             }
-            window.addEventListener('resize', this._onResize, true);
-            window.addEventListener('orientationchange', this._onResize, true);
-            this.wavesurfer.on('zoom', this._onResize);
+            window.addEventListener("resize", this._onResize, true);
+            window.addEventListener("orientationchange", this._onResize, true);
+            this.wavesurfer.on("zoom", this._onResize);
         };
 
         this.markers = [];
@@ -107,19 +104,19 @@ export default class MarkersPlugin {
             this._onBackendCreated();
             this._onReady();
         } else {
-            this.wavesurfer.once('ready', this._onReady);
-            this.wavesurfer.once('backend-created', this._onBackendCreated);
+            this.wavesurfer.once("ready", this._onReady);
+            this.wavesurfer.once("backend-created", this._onBackendCreated);
         }
     }
 
     destroy() {
-        this.wavesurfer.un('ready', this._onReady);
-        this.wavesurfer.un('backend-created', this._onBackendCreated);
+        this.wavesurfer.un("ready", this._onReady);
+        this.wavesurfer.un("backend-created", this._onBackendCreated);
 
-        this.wavesurfer.un('zoom', this._onResize);
+        this.wavesurfer.un("zoom", this._onResize);
 
-        window.removeEventListener('resize', this._onResize, true);
-        window.removeEventListener('orientationchange', this._onResize, true);
+        window.removeEventListener("resize", this._onResize, true);
+        window.removeEventListener("orientationchange", this._onResize, true);
 
         this.clear();
     }
@@ -138,7 +135,7 @@ export default class MarkersPlugin {
             position: params.position || DEFAULT_POSITION
         };
 
-        marker.el = this._createMarkerElement(marker);
+        marker.el = this._createMarkerElement(marker, params.img);
 
         this.wrapper.appendChild(marker.el);
         this.markers.push(marker);
@@ -174,7 +171,7 @@ export default class MarkersPlugin {
         polygon.setAttribute("stroke", "#979797");
         polygon.setAttribute("fill", color);
         polygon.setAttribute("points", "20 0 40 30 40 80 0 80 0 30");
-        if ( position == "top" ) {
+        if (position == "top") {
             polygon.setAttribute("transform", "rotate(180, 20 40)");
         }
 
@@ -190,11 +187,11 @@ export default class MarkersPlugin {
         return el;
     }
 
-    _createMarkerElement(marker) {
+    _createMarkerElement(marker, img) {
         let label = marker.label;
         let time = marker.time;
 
-        const el = document.createElement('marker');
+        const el = document.createElement("marker");
         el.className = "wavesurfer-marker";
 
         this.style(el, {
@@ -202,25 +199,27 @@ export default class MarkersPlugin {
             height: "100%",
             display: "flex",
             overflow: "hidden",
-            "flex-direction": (marker.position == "top" ? "column-reverse" : "column")
+            "flex-direction":
+                marker.position == "top" ? "column-reverse" : "column"
         });
 
-        const line = document.createElement('div');
+        const line = document.createElement("div");
         this.style(line, {
             "flex-grow": 1,
-            "margin-left": (this.markerWidth / 2 - 0.5) + "px",
+            "margin-left": this.markerWidth / 2 - 0.5 + "px",
             background: "black",
             width: "1px",
             opacity: 0.1
         });
         el.appendChild(line);
 
-        const labelDiv = document.createElement('div');
-        const point = this._createPointerSVG(marker.color, marker.position);
+        const labelDiv = document.createElement("div");
+        const point =
+            img || this._createPointerSVG(marker.color, marker.position);
         labelDiv.appendChild(point);
 
-        if ( label ) {
-            const labelEl = document.createElement('span');
+        if (label) {
+            const labelEl = document.createElement("span");
             labelEl.innerText = label;
             this.style(labelEl, {
                 "font-family": "monospace",
@@ -237,7 +236,7 @@ export default class MarkersPlugin {
 
         el.appendChild(labelDiv);
 
-        labelDiv.addEventListener("click", e => {
+        labelDiv.addEventListener("click", (e) => {
             e.stopPropagation();
             this.wavesurfer.setCurrentTime(time);
         });
@@ -248,17 +247,17 @@ export default class MarkersPlugin {
     _updateMarkerPositions() {
         const duration = this.wavesurfer.getDuration();
 
-        for ( let i = 0 ; i < this.markers.length; i++ ) {
+        for (let i = 0; i < this.markers.length; i++) {
             let marker = this.markers[i];
             const elementWidth =
                 this.wavesurfer.drawer.width /
                 this.wavesurfer.params.pixelRatio;
 
             const positionPct = Math.min(marker.time / duration, 1);
-            const leftPx = ((elementWidth * positionPct) - (this.markerWidth / 2));
+            const leftPx = elementWidth * positionPct - this.markerWidth / 2;
             this.style(marker.el, {
-                "left":  leftPx + "px",
-                "max-width": (elementWidth - leftPx) + "px"
+                left: leftPx + "px",
+                "max-width": elementWidth - leftPx + "px"
             });
         }
     }
@@ -267,7 +266,7 @@ export default class MarkersPlugin {
      * Remove all markers
      */
     clear() {
-        while ( this.markers.length > 0 ) {
+        while (this.markers.length > 0) {
             this.remove(0);
         }
     }
